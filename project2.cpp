@@ -1,27 +1,32 @@
+#include <string>
+#include <vector>
+#include <iostream>
+
 // Structure to represent a process control block
 struct PCB {
-    string id;
+    std::string id;
     int priority;
     int burst_time;
     int arrival_time;
     int remaining_time;
-    // feel free to add more variables here
+    int last_run_time;
+    int remaining_quantum;
 };
 
 int main() {
-    string line;
+    std::string line;
     char dummy;
     int time_quantum;
-    vector<PCB> processes;
+    std::vector<PCB> processes;
 
     // Read time quantum from standard input
-    cin >> dummy >> time_quantum;
+    std::cin >> dummy >> time_quantum;
 
     // Read processes from standard input
-    while (cin >> line) {
+    while (std::cin >> line) {
         PCB p;
         p.id = line;
-        cin >> p.priority >> p.burst_time >> p.arrival_time;
+        std::cin >> p.priority >> p.burst_time >> p.arrival_time;
         p.remaining_time = p.burst_time;
         p.last_run_time = -1;
         p.remaining_quantum = time_quantum;
