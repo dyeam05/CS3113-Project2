@@ -19,10 +19,6 @@ void print_process_time(PCB pcb, int start_time, int end_time) {
         << " (Priority " << pcb.priority << ")" << std::endl;
 }
 
-void round_robin(PCB pcb1, PCB pcb2, int start_time, int end_time, int time_quantum) {
-    std::cout << "NEEDS ROUND ROBIN" << std::endl;
-}
-
 //function that simulates the required scheduling process using preemptive priority and round robin
 void scheduler_simulator(std::vector<PCB> processes, int time_quantum) {
     int total_CPU_time = 0;     //stores total CPU time
@@ -34,8 +30,6 @@ void scheduler_simulator(std::vector<PCB> processes, int time_quantum) {
     idle.id = "Idle";
     idle.priority = 0;
 
-
-
     std::vector<PCB> sorted_pcbs = processes;   //create sorted_pcbs vector from given processes argument
 
     //Sort sorted_pcbs vector using std::sort to sort processes based on arrival time
@@ -46,6 +40,7 @@ void scheduler_simulator(std::vector<PCB> processes, int time_quantum) {
     for(PCB pcb : sorted_pcbs) {
         CPU_working_time += pcb.burst_time;
     }
+    total_CPU_time = CPU_working_time;
 
     // Iterates through each process while the CPU is still working
     int i = 0;
@@ -61,6 +56,7 @@ void scheduler_simulator(std::vector<PCB> processes, int time_quantum) {
         if(start_time < sorted_pcbs[i].arrival_time) {
             for(int j = 0; j < (sorted_pcbs[i].arrival_time - start_time); j++) {
                 end_time++;
+                total_CPU_time++;
             }
             print_process_time(idle, start_time, end_time);
             start_time = end_time;
@@ -72,17 +68,12 @@ void scheduler_simulator(std::vector<PCB> processes, int time_quantum) {
             CPU_working_time--;
             end_time++;
 
-
-            //TODO: IMPLEMENT ROUND ROBIN SCHEDULING FOR TASKS WITH EQUAL PRIORITY
-
-
             //interrupts active process to move to higher priority process
             if(sorted_pcbs[i+1].arrival_time == end_time && sorted_pcbs[i+1].priority > sorted_pcbs[i].priority) {
                 break;
             }
 
         }
-
         //prints process time information
         print_process_time(sorted_pcbs[i], start_time, end_time);
         start_time = end_time;
