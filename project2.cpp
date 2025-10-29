@@ -16,6 +16,7 @@ struct PCB {
     int waiting_time;
 };
 
+//outputs process time data for a given process and current CPU time
 void print_process_time(PCB pcb, int current_time) {
     std::cout << current_time << ": " << pcb.id << " (Priority " << pcb.priority << ")" << std::endl;
 }
@@ -26,10 +27,6 @@ void scheduler_simulator(std::vector<PCB> processes, int time_quantum) {
     int total_CPU_time = 0;     //stores total CPU time
     int CPU_working_time = 0;   //stores time that CPU is actually working on a process
     int current_time = 0;         //stores current CPU time
-    PCB idle;                   //idle CPU process
-    idle.id = "Idle";
-    idle.priority = 0;
-    idle.remaining_time = 0;
 
     std::vector<PCB> sorted_pcbs = processes;   //create sorted_pcbs vector from given processes argument
 
@@ -41,17 +38,20 @@ void scheduler_simulator(std::vector<PCB> processes, int time_quantum) {
     for(PCB pcb : sorted_pcbs) {
         CPU_working_time += pcb.burst_time;
     }
-    total_CPU_time = CPU_working_time;
+    int static_working_time = CPU_working_time; //duplicate of CPU_working_time for display purposes
+    total_CPU_time = CPU_working_time;          //dupe of CPU_working_time, but extra time is added during idle times.
 
     // Iterates through each process while the CPU is still working
     int i = 0;
     while(CPU_working_time > 0) {
 
+        // Skips any finished processes
         while(sorted_pcbs[i].remaining_time == 0) {
             i++;
             if(i > sorted_pcbs.size()-1) i = 0;
         }
 
+        // Begins outputting each time diagram
         std::cout << "Time " << current_time << "-";
 
         //runs idle CPU process if process i is selected before arrival time
@@ -60,7 +60,7 @@ void scheduler_simulator(std::vector<PCB> processes, int time_quantum) {
                 current_time++;
                 total_CPU_time++;
                 if(current_time >= sorted_pcbs[i].arrival_time) {
-                    print_process_time(idle, current_time);
+                    std::cout << current_time << ": " << "Idle" << std::endl;
                     break;
                 }
             }
@@ -77,6 +77,7 @@ void scheduler_simulator(std::vector<PCB> processes, int time_quantum) {
                 }
             }
             print_process_time(sorted_pcbs[i], current_time);
+            //calculate turnaround and burst time if process has finished execution
             if(sorted_pcbs[i].remaining_time == 0) {
                 sorted_pcbs[i].turnaround_time = current_time - sorted_pcbs[i].arrival_time;
                 sorted_pcbs[i].waiting_time = sorted_pcbs[i].turnaround_time - sorted_pcbs[i].burst_time;
@@ -97,12 +98,13 @@ void scheduler_simulator(std::vector<PCB> processes, int time_quantum) {
                 }
             }
             print_process_time(sorted_pcbs[i], current_time);
+            //calculate turnaround and burst time if process has finished execution
             if(sorted_pcbs[i].remaining_time == 0) {
                 sorted_pcbs[i].turnaround_time = current_time - sorted_pcbs[i].arrival_time;
                 sorted_pcbs[i].waiting_time = sorted_pcbs[i].turnaround_time - sorted_pcbs[i].burst_time;
             }
             if (sorted_pcbs[i+1].arrival_time == current_time && sorted_pcbs[i+1].priority > sorted_pcbs[i].priority) i++;
-            else i--;
+            else i--;   //move to previous process for round robin
         }
         //process executes as normal until finishing time burst
         else {
@@ -113,6 +115,7 @@ void scheduler_simulator(std::vector<PCB> processes, int time_quantum) {
                     current_time++;
                 }
 
+                //if a new process arrives, or the process finishes its burst, the process finishes execution and moves on to the next one
                 if((sorted_pcbs[i+1].arrival_time == current_time && sorted_pcbs[i+1].priority > sorted_pcbs[i].priority) || sorted_pcbs[i].remaining_time == 0) {
                     print_process_time(sorted_pcbs[i], current_time);
                     //calculate turnaround and burst time if process has finished execution
@@ -120,7 +123,9 @@ void scheduler_simulator(std::vector<PCB> processes, int time_quantum) {
                         sorted_pcbs[i].turnaround_time = current_time - sorted_pcbs[i].arrival_time;
                         sorted_pcbs[i].waiting_time = sorted_pcbs[i].turnaround_time - sorted_pcbs[i].burst_time;
                     }
+                    //if a new process arrives with higher priority, move to it
                     if(sorted_pcbs[i+1].arrival_time == current_time && sorted_pcbs[i+1].priority > sorted_pcbs[i].priority) i++;
+                    //if not, start back at the beginning of the vector, and skip completed tasks
                     else i = 0;
                     break;
                 }
@@ -131,6 +136,7 @@ void scheduler_simulator(std::vector<PCB> processes, int time_quantum) {
 
     }
 
+    //iterates through all processes and outputs turnaround time calculated at end of process execution
     std::cout << "Turnaround Time" << std::endl;
     for(PCB pcb : sorted_pcbs) {
         std::cout << pcb.id << " = " << pcb.turnaround_time << std::endl;
@@ -138,13 +144,16 @@ void scheduler_simulator(std::vector<PCB> processes, int time_quantum) {
 
     std::cout << std::endl;
 
+    //iterates through all processes and outputs waiting time calculated at end of process execution
     std::cout << "Waiting Time" << std::endl;
     for(PCB pcb : sorted_pcbs) {
         std::cout << pcb.id << " = " << pcb.waiting_time << std::endl;
     }
 
+    std::cout << std::endl;
 
-
+    std::cout << "CPU Utilization Time" << std::endl;
+    std::cout << static_working_time << "/" << total_CPU_time;
 
 };
 
